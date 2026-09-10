@@ -73,16 +73,16 @@ quickSort (x:xs) = quickSort small ++ [x] ++ quickSort high
 
 
 mergeSort::[Int] -> [Int]
-mergeSort[] = []
-mergeSort[x] = [x]
-mergeSort xs = merge (mergeSort firstHalf) (mergeSort lastHalf)
-    where (firstHalf, lastHalf) = splitInHalf xs
+mergeSort[] = [] --returned leeg
+mergeSort[x] = [x] -- returned single waarde als er ook maar 1 terug komt. is zodat de loop niet infite door gaat
+mergeSort xs = merge (mergeSort firstHalf) (mergeSort lastHalf) -- stuurt de first en last half weer terug door de merge sort heen tot dat het enkele waarde zijn. daarna gaat deze naar de merge functie
+    where (firstHalf, lastHalf) = splitInHalf xs --splits de lijst in 2e en assigned deze naar de variable firsthalf en last half
 
 
 merge :: [Int] ->[Int] -> [Int]
-merge xs [] = xs
-merge [] ys = ys
-merge (x:xs) (y:ys) = 
+merge xs [] = xs -- return xs als de 2e list leeg is
+merge [] ys = ys -- return ys als de 1e list leeg is
+merge (x:xs) (y:ys) = -- splits it in (x:xs) (y:yes) 2 parts de eerste index en de rest van de list. dus je krijg x en y.
     if x <= y
         then x : merge xs (y:ys)
     else y: merge (x:xs) ys
