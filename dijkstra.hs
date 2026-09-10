@@ -74,13 +74,18 @@ quickSort (x:xs) = quickSort small ++ [x] ++ quickSort high
 
 mergeSort::[Int] -> [Int]
 mergeSort[] = []
-mergeSort xs = 
-    let (leftHalf, rightHalf) = splitInHalf xs
-        where
-            length xs > 1
-        debug = show leftHalf ++ " " ++ show rightHalf
-    in trace debug (mergeSort leftHalf ++ mergeSort rightHalf)
+mergeSort[x] = [x]
+mergeSort xs = merge (mergeSort firstHalf) (mergeSort lastHalf)
+    where (firstHalf, lastHalf) = splitInHalf xs
 
+
+merge :: [Int] ->[Int] -> [Int]
+merge xs [] = xs
+merge [] ys = ys
+merge (x:xs) (y:ys) = 
+    if x <= y
+        then x : merge xs (y:ys)
+    else y: merge (x:xs) ys
 
 
 splitInHalf:: [Int] -> ([Int], [Int])
