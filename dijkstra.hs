@@ -93,6 +93,8 @@ splitInHalf xs = splitAt midpoint xs
     where
         midpoint = length xs `div` 2
 
+
+
 main:: IO()
 main = do  
     let list = [4,3,5,2]
@@ -101,4 +103,5 @@ main = do
     -- let x = (read input :: Int)
     -- print (take x fibbonacci2)
     -- print (filtered2 (take x fibbonacci2))
-    print(mergeSort list)
+
+    
