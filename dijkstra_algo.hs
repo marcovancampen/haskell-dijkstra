@@ -38,7 +38,12 @@ lookupTable distanceMap key = fromMaybe Infinity(Hm.lookup key distanceMap) -- k
 
 
 findShortestDistance :: Graph -> String -> String -> Distance Int -- neemt een de graph, de start node (string) en destiantion node (string) en berekend de distance. de kleinste wordt gereturned in als distance
-
+findShortest graph src dest = distance
+    where 
+        initialVisted = HS.empty
+        initialDistances = HM.singleton src (Dist 0)
+        initialQueue = H.fromList [(Dist 0, src)]
+        initialState = DijkstraState initialVisited initialDistances initialQueue
 
 
 graph1 :: Graph
