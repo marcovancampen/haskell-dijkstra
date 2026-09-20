@@ -1,6 +1,7 @@
 import Debug.Trace
 import qualified Data.HashMap.Strict as HM
 import Data.HashMap.Strict (HashMap)
+import qualified Data.Heap as H
 import Data.Heap (MinPrioHeap)
 import qualified Data.HashSet as HS
 import Data.HashSet (HashSet)
@@ -33,17 +34,36 @@ addDistance (Dist x ) (Dist y ) =  Dist (x + y)
 addDistance _ _ = Infinity
 
 
-lookupTable :: (Hashable k , Eq k ) => HashMap k (Distance d) -> k -> Distance d -- forceed dat k hashable is en dat k ook verglijkbaar moet zijn. dit zorgt ervoor dat we een bepaald patroon behouden. returned een distance (custom data type hier boven)
-lookupTable distanceMap key = fromMaybe Infinity(Hm.lookup key distanceMap) -- kijkt in de hashmap of er een instance is van een distance met de key (k) zo ja returned dit dat getal (distance d). zo niet returned het Infinity. dit mag omdat we boven aan de data type hebben gemaakt en dit is 1 van de toegestaande waardes.
+(!??) :: (Hashable k , Eq k ) => HashMap k (Distance d) -> k -> Distance d -- forceed dat k hashable is en dat k ook verglijkbaar moet zijn. dit zorgt ervoor dat we een bepaald patroon behouden. returned een distance (custom data type hier boven)
+(!??) distanceMap key = fromMaybe Infinity(HM.lookup key distanceMap) -- kijkt in de hashmap of er een instance is van een distance met de key (k) zo ja returned dit dat getal (distance d). zo niet returned het Infinity. dit mag omdat we boven aan de data type hebben gemaakt en dit is 1 van de toegestaande waardes.
 
 
-findShortestDistance :: Graph -> String -> String -> Distance Int -- neemt een de graph, de start node (string) en destiantion node (string) en berekend de distance. de kleinste wordt gereturned in als distance
-findShortest graph src dest = distance
+findShortestDistance :: Graph -> String -> String -> Distance Int
+findShortestDistance graph src dest = processQueue initialState !?? dest
     where 
-        initialVisted = HS.empty
+        initialVisited = HS.empty
         initialDistances = HM.singleton src (Dist 0)
         initialQueue = H.fromList [(Dist 0, src)]
         initialState = DijkstraState initialVisited initialDistances initialQueue
+    
+        processQueue :: DijkstraState -> HashMap String (Distance Int)
+        processQueue ds@(DijkstraState v0 d0 q0) = case H.view q0 of
+            Nothing -> d0
+            Just ((minDist, node), q1) -> 
+                if node == dest then d0
+                else if HS.member node v0 then processQueue (ds {nodeQueue = q1})
+                else
+                    let v1 = HS.insert node v0 
+                        allNeighbors = fromMaybe [] (HM.lookup node (edges graph)) 
+                        unvisitedNeighbors = filter (\(n, _) -> not (HS.member n v1)) allNeighbors
+                    in processQueue $ foldl (foldNeighbor node) (DijkstraState v1 d0 q1) unvisitedNeighbors
+
+     
+        foldNeighbor current ds@(DijkstraState v1 d0 q1) (neighborNode, cost) =
+            let altDistance = addDistance (d0 !?? current) (Dist cost)
+            in if altDistance < d0 !?? neighborNode
+               then DijkstraState v1 (HM.insert neighborNode altDistance d0) (H.insert (altDistance, neighborNode) q1)
+               else ds
 
 
 graph1 :: Graph
