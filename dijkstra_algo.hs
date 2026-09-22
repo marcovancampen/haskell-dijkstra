@@ -39,31 +39,31 @@ addDistance _ _ = Infinity
 
 
 findShortestDistance :: Graph -> String -> String -> Distance Int
-findShortestDistance graph src dest = processQueue initialState !?? dest
+findShortestDistance graph src dest = processQueue initialState !?? dest 
     where 
-        initialVisited = HS.empty
-        initialDistances = HM.singleton src (Dist 0)
-        initialQueue = H.fromList [(Dist 0, src)]
-        initialState = DijkstraState initialVisited initialDistances initialQueue
+        initialVisited = HS.empty -- lege hashset nodes
+        initialDistances = HM.singleton src (Dist 0) -- maakt een hashmap met dist 0 voor de init node
+        initialQueue = H.fromList [(Dist 0, src)] -- maakt een min heap met de init node en dist 0
+        initialState = DijkstraState initialVisited initialDistances initialQueue -- maakt een dijkstra stade met de waardes
     
         processQueue :: DijkstraState -> HashMap String (Distance Int)
-        processQueue ds@(DijkstraState v0 d0 q0) = case H.view q0 of
+        processQueue ds@(DijkstraState v0 d0 q0) = case H.view q0 of 
             Nothing -> d0
-            Just ((minDist, node), q1) -> 
-                if node == dest then d0
-                else if HS.member node v0 then processQueue (ds {nodeQueue = q1})
+            Just ((minDist, node), q1) ->
+                if node == dest then d0 -- als we bij de destination node zijn returnen we de distance als map.
+                else if HS.member node v0 then processQueue (ds {nodeQueue = q1}) -- Skip als al bezocht
                 else
-                    let v1 = HS.insert node v0 
-                        allNeighbors = fromMaybe [] (HM.lookup node (edges graph)) 
-                        unvisitedNeighbors = filter (\(n, _) -> not (HS.member n v1)) allNeighbors
-                    in processQueue $ foldl (foldNeighbor node) (DijkstraState v1 d0 q1) unvisitedNeighbors
+                    let v1 = HS.insert node v0 -- voegt de current node toe aan de visted set.
+                        allNeighbors = fromMaybe [] (HM.lookup node (edges graph)) --pakt alle neighbors van de node die we nu aan het bekijken zijn. dit is een list van tuples. (node, cost)
+                        unvisitedNeighbors = filter (\(n, _) -> not (HS.member n v1)) allNeighbors -- filtererd uit de nodes die we al hebben bezocht. zodat we niet terug gaan naar een node waar we al zijn geweest.
+                    in processQueue $ foldl (foldNeighbor node) (DijkstraState v1 d0 q1) unvisitedNeighbors -- calls function recursively until the queue is empty or the destination node is reached. It updates the state with new distances and visited nodes.
 
      
         foldNeighbor current ds@(DijkstraState v1 d0 q1) (neighborNode, cost) =
-            let altDistance = addDistance (d0 !?? current) (Dist cost)
-            in if altDistance < d0 !?? neighborNode
-               then DijkstraState v1 (HM.insert neighborNode altDistance d0) (H.insert (altDistance, neighborNode) q1)
-               else ds
+            let altDistance = addDistance (d0 !?? current) (Dist cost) -- calculeert de afstanden van de current node naar de neightbour node
+            in if altDistance < d0 !?? neighborNode -- als die kleiner is update
+               then DijkstraState v1 (HM.insert neighborNode altDistance d0) (H.insert (altDistance, neighborNode) q1) 
+               else ds -- als die niet kleiner is return de state zoals die is. 
 
 
 graph1 :: Graph

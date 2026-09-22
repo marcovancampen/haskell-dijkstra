@@ -28,30 +28,30 @@ addDistance _ _ = Infinity
     
 -- Returns een lazy list of nodes in exact order van kortste aftstand
 lazyDijkstra :: Graph -> String -> [(String, Distance Int)]
-lazyDijkstra graph src = explore HS.empty initialQueue
+lazyDijkstra graph src = explore HS.empty initialQueue -- returns een lijst met de kortste aftstand van de source node naar de desitnation
   where
-    initialQueue = H.fromList [(Dist 0, src)]
+    initialQueue = H.fromList [(Dist 0, src)] --maakt een queue met de source node en dist 0
     
     explore :: HashSet String -> MinPrioHeap (Distance Int) String -> [(String, Distance Int)]
-    explore visited queue = case H.view queue of
+    explore visited queue = case H.view queue of 
         Nothing -> []  
         Just ((currentDist, node), q1) ->
             if HS.member node visited
             then explore visited q1  -- Skip als al bezocht
             else 
-                (node, currentDist) : explore newVisited newQueue
+                (node, currentDist) : explore newVisited newQueue -- voegt de current node en de distance toe aan de lijst en zoekt veder.
               where
-                newVisited = HS.insert node visited
-                allNeighbors = fromMaybe [] (HM.lookup node (edges graph))
-                unvisitedNeighbors = filter (\(n, _) -> not (HS.member n newVisited)) allNeighbors
-                newQueue = foldl' (\q (neighbor, cost) -> 
-                    H.insert (addDistance currentDist (Dist cost), neighbor) q
-                    ) q1 unvisitedNeighbors
+                newVisited = HS.insert node visited -- voegt de current node toe aan de visited set
+                allNeighbors = fromMaybe [] (HM.lookup node (edges graph)) -- pakt alle neighbours van current node
+                unvisitedNeighbors = filter (\(n, _) -> not (HS.member n newVisited)) allNeighbors -- filtered de nodes waar we al zijn geweest.
+                newQueue = foldl' (\q (neighbor, cost) -> -- voegt de unvisited neighbors toe aan de queue met de nieuwe afstand
+                    H.insert (addDistance currentDist (Dist cost), neighbor) q 
+                    ) q1 unvisitedNeighbors 
 
 findShortestDistance :: Graph -> String -> String -> Distance Int
 findShortestDistance graph src dest = 
-    let lazyPaths = lazyDijkstra graph src
-    in fromMaybe Infinity (lookup dest lazyPaths)
+    let lazyPaths = lazyDijkstra graph src 
+    in fromMaybe Infinity (lookup dest lazyPaths) 
 
 
 graph1 :: Graph
